@@ -1,39 +1,19 @@
 const { ChannelType } = require('discord.js');
 
-// Map để lưu trữ status ban đầu của mỗi kênh voice
-const voiceChannelStatuses = new Map();
-
 module.exports = async (client, oldState, newState) => {
     try {
-        // Kiểm tra nếu bot tham gia voice channel
+        // Bot không thay đổi status kênh voice - chỉ giữ nguyên
         if (newState.member.id === client.user.id && newState.channelId && !oldState.channelId) {
             const voiceChannel = newState.channel;
-            
-            // Lưu trữ status ban đầu của kênh voice
             if (voiceChannel) {
-                voiceChannelStatuses.set(voiceChannel.id, voiceChannel.topic || '');
-                console.log(`[VOICE STATUS] Lưu status kênh ${voiceChannel.name}: "${voiceChannel.topic || '(trống)'}"`);
+                console.log(`[VOICE] Bot tham gia kênh voice: ${voiceChannel.name}`);
             }
         }
 
-        // Kiểm tra nếu bot rời voice channel
         if (oldState.member.id === client.user.id && oldState.channelId && !newState.channelId) {
             const voiceChannel = oldState.channel;
-            
-            // Khôi phục status ban đầu của kênh voice
-            if (voiceChannel && voiceChannelStatuses.has(voiceChannel.id)) {
-                const originalStatus = voiceChannelStatuses.get(voiceChannel.id);
-                
-                if (voiceChannel.permissionsFor(client.user).has('ManageChannels')) {
-                    try {
-                        await voiceChannel.edit({ topic: originalStatus });
-                        console.log(`[VOICE STATUS] Khôi phục status kênh ${voiceChannel.name}: "${originalStatus || '(trống)'}"`);
-                    } catch (error) {
-                        console.error(`[VOICE STATUS] Lỗi khi khôi phục status: ${error.message}`);
-                    }
-                }
-                
-                voiceChannelStatuses.delete(voiceChannel.id);
+            if (voiceChannel) {
+                console.log(`[VOICE] Bot rời khỏi kênh voice: ${voiceChannel.name}`);
             }
         }
     } catch (error) {
