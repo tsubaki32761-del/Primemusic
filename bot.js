@@ -7,6 +7,7 @@ const { connectToDatabase } = require('./mongodb');
 const colors = require('./UI/colors/colors');
 const { getLavalinkManager } = require('./lavalink.js');
 const { getLang, getLangSync } = require('./utils/languageLoader.js');
+const StatusManager = require('./utils/statusManager.js');
 require('dotenv').config();
 
 const client = new Client({
@@ -16,6 +17,7 @@ const client = new Client({
 });
 
 client.config = config;
+client.statusManager = null;
 
 
 process.on('unhandledRejection', (error) => {
@@ -66,14 +68,21 @@ process.on('uncaughtException', (error) => {
 
 initializePlayer(client).catch(error => {
     const lang = getLangSync();
-    console.error(`${colors.cyan}[ LAVALINK ]${colors.reset} ${colors.red}${lang.console?.bot?.lavalinkError?.replace('{message}', error.message) || `Error initializing player: ${error.message}`}${colors.reset}`);
+    console.error(`${colors.cyan}[ LAVALINK ]${colors.reset} ${colors.red}${lang.console?.bot?.lavalinkError?.replace('{message}', error.message) || `Error initializing player: ${error.message}`}$[...]`);
 });
 
-client.on("clientReady", () => {
+client.on("clientReady", async () => {
     const lang = getLangSync();
     console.log(`${colors.cyan}[ SYSTEM ]${colors.reset} ${colors.green}${lang.console?.bot?.clientLogged?.replace('{tag}', client.user.tag) || `Client logged as ${client.user.tag}`}${colors.reset}`);
     console.log(`${colors.cyan}[ MUSIC ]${colors.reset} ${colors.green}${lang.console?.bot?.musicSystemReady || 'Riffy Music System Ready 🎵'}${colors.reset}`);
    
+    // Khởi tạo StatusManager
+    if (!client.statusManager) {
+        client.statusManager = new StatusManager(client);
+        await client.statusManager.init();
+        console.log(`${colors.cyan}[ STATUS ]${colors.reset} ${colors.green}Status Manager Initialized ✅${colors.reset}`);
+    }
+
     const nodeManager = getLavalinkManager();
     if (nodeManager) {
         nodeManager.init(client.user.id);
@@ -83,7 +92,7 @@ client.on("clientReady", () => {
             const availableCount = nodeManager.getNodeCount();
             const totalCount = nodeManager.getTotalNodeCount();
             
-            console.log(`${colors.cyan}[ LAVALINK ]${colors.reset} ${colors.green}${lang.console?.bot?.nodeManagerStatus?.replace('{available}', availableCount).replace('{total}', totalCount) || `Node Manager: ${availableCount}/${totalCount} nodes available`}${colors.reset}`);
+            console.log(`${colors.cyan}[ LAVALINK ]${colors.reset} ${colors.green}${lang.console?.bot?.nodeManagerStatus?.replace('{available}', availableCount).replace('{total}', totalCount) || `[...]`);
             
             if (status.nodes.length > 0) {
                 console.log(`${colors.cyan}[ LAVALINK ]${colors.reset} ${lang.console?.bot?.nodeStatus || 'Node Status:'}`);
@@ -91,7 +100,7 @@ client.on("clientReady", () => {
                     const statusIcon = node.online ? `${colors.green}✅${colors.reset}` : `${colors.red}❌${colors.reset}`;
                     const statusText = node.online ? 'ONLINE' : 'OFFLINE';
                     const errorText = node.lastError ? ` | ${colors.yellow}${node.lastError}${colors.reset}` : '';
-                    const nodeInfo = lang.console?.bot?.nodeInfo?.replace('{icon}', statusIcon).replace('{name}', node.name).replace('{host}', node.host).replace('{port}', node.port).replace('{status}', statusText).replace('{error}', errorText) || `  ${statusIcon} ${colors.yellow}${node.name}${colors.reset} (${node.host}:${node.port}) - ${statusText}${errorText}`;
+                    const nodeInfo = lang.console?.bot?.nodeInfo?.replace('{icon}', statusIcon).replace('{name}', node.name).replace('{host}', node.host).replace('{port}', node.port).replace('{sta[...]`);
                     console.log(nodeInfo);
                 }
             }
@@ -141,11 +150,11 @@ const loadCommands = () => {
             //console.log(`${colors.cyan}[ COMMANDS ]${colors.reset} ${colors.green}Loaded: ${colors.yellow}${command.data.name}${categoryInfo}${colors.reset}`);
           } else {
             const lang = getLangSync();
-            console.log(`${colors.cyan}[ COMMANDS ]${colors.reset} ${colors.red}${lang.console?.bot?.commandLoadFailed?.replace('{name}', item.name) || `Failed to load: ${item.name} - Missing data or run property`}${colors.reset}`);
+            console.log(`${colors.cyan}[ COMMANDS ]${colors.reset} ${colors.red}${lang.console?.bot?.commandLoadFailed?.replace('{name}', item.name) || `Failed to load: ${item.name} - Missing dat[...]`);
       }
         } catch (error) {
           const lang = getLangSync();
-          console.error(`${colors.cyan}[ COMMANDS ]${colors.reset} ${colors.red}${lang.console?.bot?.commandLoadError?.replace('{name}', item.name).replace('{message}', error.message) || `Error loading ${item.name}: ${error.message}`}${colors.reset}`);
+          console.error(`${colors.cyan}[ COMMANDS ]${colors.reset} ${colors.red}${lang.console?.bot?.commandLoadError?.replace('{name}', item.name).replace('{message}', error.message) || `Error l[...]`);
     }
       }
     }
@@ -155,7 +164,7 @@ const loadCommands = () => {
   const commandsDir = path.resolve(__dirname, config.commandsDir);
   loadCommandsFromDir(commandsDir);
   const lang = getLangSync();
-  console.log(`${colors.cyan}[ COMMANDS ]${colors.reset} ${colors.green}${lang.console?.bot?.commandsLoaded?.replace('{count}', client.commands.size) || `Total Commands Loaded: ${client.commands.size}`}${colors.reset}`);
+  console.log(`${colors.cyan}[ COMMANDS ]${colors.reset} ${colors.green}${lang.console?.bot?.commandsLoaded?.replace('{count}', client.commands.size) || `Total Commands Loaded: ${client.commands.[...]}`);
 };
 
 loadCommands();
